@@ -1,3 +1,11 @@
+v 0.4 (20111223)
+- Adapt JSON change in Eden, to support the new version.
+- Fix HTML & CSS Struture in  cover display and media info bar.
+- Fix the back button in keyboard.
+- Fix keycode usage for the arrow keys and media info bar.
+- Add support for Gyroscope for arraw keys and pause media.
+- Remove json.js, as already supported in iOS 5.
+
 v 0.3 (20100929)
 - Implements icons from  Everaldo Coelho's Crystal Project Icons
 - Browse Music Library now can find by genre first.
