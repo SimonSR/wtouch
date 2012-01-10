@@ -30,8 +30,6 @@ function updateOrientation()
 {
   if (gyroAct>0) return false;
   window.scrollTo(0, 1);
-  if (!cvrImage) cvrImage =document.getElementById('cvr');
-  //cvrImage.height=window.innerHeight;
   winSize();
   if (window.orientation==0)
   {
@@ -69,58 +67,6 @@ var gyroAct=0;
 var heightStyle;
 var rule;
 var playerId=-1;
-
-var ws;
-function webConnect()
-{
-  if (!window.WebSocket && !window.MozWebSocket)alert('Your browser is not support WebSocket.');
-  var parts=document.location.toString().split('/');
-  var url=parts[2];
-  if (url.indexOf(':')>0)url=url.substring(0,url.indexOf(':'));
-  var location=parts[0].replace('http','ws')+"//"+url+":9090/"; 
-  if (window.WebSocket)
-   ws=new WebSocket(location);
-  else if (window.MozWebSocket)
-   ws=new MozWebSocket(location);
-  if (ws)
-  {
-   reconnect=true;
-   ws.onopen=wsOpen;
-   ws.onmessage=wsMessage;
-   ws.onclose=wsClose;
-  }
-}
-
-function webDisconnect()
-{
- reconnect=false;
- if (ws) ws.close();
-}
-
-function wsOpen()
-{
-}
-
-function wsMessage(message)
-{
-}
-
-function wsClose()
-{
- ws=null;
- if (reconnect) setTimeout("webConnect()",1000);
-}
-
-function wsSend(message)
-{
- if (ws)ws.send(message);
- else alert("WebSocket Disconnected!");
- return false;
-}
-
-function test()
-{
-}
 
 function sendCommand(cmd,callback)
 {
@@ -538,19 +484,10 @@ function openFile(file)
   play('file','"'+file+'"');
 }
 
-function addMusicPlaylist(file)
-{
-  jsonRequest('AudioPlaylist.Add', '"file": "'+file+'"',function(httpRequest)
-  {
-  });
-  //jsonRequest('Audioplaylist.Play', '');
-}
-
 function shuffle(type,value)
 {
   jsonRequest('Playlist.Clear', '"playlistid":0');
   jsonRequest('Playlist.Add', '"playlistid":0, "item": {"'+type+'": '  +(isNaN(parseFloat(value))?'"'+value+'"':value)+'}');
-//  jsonRequest('Player.Shuffle', '"playerid":0');
   play('playlistid','0');
   jsonRequest('Player.Shuffle', '"playerid":0');
 }
@@ -724,7 +661,9 @@ function browseSongs(ruleName,value)
   addHistory(12,"Songs",ruleName,value);
   var buf="";
   window.scrollTo(0, 1);
-  var param='"properties":["thumbnail"], "sort": { "method": "label", "ignorearticle": true }';
+  var sort='label';
+  if (ruleName=='albumid')sort='track';
+  var param='"properties":["thumbnail"], "sort": { "method": "'+sort+'", "ignorearticle": true }';
   if (ruleName) param+=',"'+ruleName+'": '+value+'';
   jsonRequest('AudioLibrary.GetSongs', param, function(httpRequest)
   {
@@ -735,18 +674,6 @@ function browseSongs(ruleName,value)
       buf+=createItem("play('songid','"+item.songid+"')",item.label,(item.thumbnail)?'/vfs/'+item.thumbnail:"DefaultFolder.png");
     }
     if (ruleName) buf=createItem("shuffle('"+ruleName+"',"+value+")","Shuffle...","Services.png")+buf;
-    content.innerHTML=buf;
-  });
-}
-
-function browseCompilations()
-{
-  addHistory(13,"Compilations");
-  var buf="<ul>";
-  window.scrollTo(0, 1);
-  jsonRequest('AudioLibrary.GetCompilations', '',function(httpRequest)
-  {
-    var resp=JSON.parse(httpRequest.responseText)["result"]["compilations"];
     content.innerHTML=buf;
   });
 }
@@ -785,59 +712,6 @@ function refreshTime()
   }
 }
 
-function inspect(obj, maxLevels, level)
-{
-  var str = '', type, msg;
-
-    // Start Input Validations
-    // Don't touch, we start iterating at level zero
-    if(level == null)  level = 0;
-
-    // At least you want to show the first level
-    if(maxLevels == null) maxLevels = 1;
-    if(maxLevels < 1)     
-        return '<font color="red">Error: Levels number must be > 0</font>';
-
-    // We start with a non null object
-    if(obj == null)
-    return '<font color="red">Error: Object <b>NULL</b></font>';
-    // End Input Validations
-
-    // Each Iteration must be indented
-    str += '<ul>';
-
-    // Start iterations for all objects in obj
-    for(property in obj)
-    {
-      try
-      {
-          // Show "property" and "type property"
-          type =  typeof(obj[property]);
-          str += '<li>(' + type + ') ' + property + 
-                 ( (obj[property]==null)?(': <b>null</b>'):('')) + '</li>';
-
-          // We keep iterating if this property is an Object, non null
-          // and we are inside the required number of levels
-          if((type == 'object') && (obj[property] != null) && (level+1 < maxLevels))
-          str += inspect(obj[property], maxLevels, level+1);
-      }
-      catch(err)
-      {
-        // Is there some properties in obj we can't access? Print it red.
-        if(typeof(err) == 'string') msg = err;
-        else if(err.message)        msg = err.message;
-        else if(err.description)    msg = err.description;
-        else                        msg = 'Unknown';
-
-        str += '<li><font color="red">(Error) ' + property + ': ' + msg +'</font></li>';
-      }
-    }
-
-      // Close indent
-      str += '</ul>';
-
-    return str;
-}
 function nowPlaying()
 {
   if (!playStat)
@@ -901,17 +775,6 @@ function initialize()
       heightStyle=document.styleSheets[0][rule][i];
     i++;
   }
-
-  //if (!click && window.Audio)
-  //{
-  //  click=new Audio();
-  //  if (click.canPlayType("audio/mp3"))
-  //  {
-  //    click.src="/click.mp3";
-  //    click.load();
-  //  }
-  //}
-  //webConnect();
   setTimeout("updateOrientation()", 100);
 }
 
@@ -1037,7 +900,7 @@ s</ul>
   <li>Select "Add to Home Screen"
   <li>Put your desired icon name
 </ul>
-XBMC wTouch Version 0.4 <br>
+XBMC wTouch Version 0.4.1 <br>
 by Paulus E. Prasetya (peprasetya@gmail.com)
 </div>
 
