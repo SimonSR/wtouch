@@ -1,3 +1,7 @@
+v 0.4.1 (20120111)
+- Sort songs by track if only opened by select an album
+- Removed unused functions.
+
 v 0.4 (20111223)
 - Adapt JSON change in Eden, to support the new version.
 - Fix HTML & CSS Struture in  cover display and media info bar.
