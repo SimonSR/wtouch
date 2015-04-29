@@ -1,0 +1,1 @@
+wTouch give you to remote XBMC with your touch based webkit browser, like iOS and Android devices. It use your gestures by swiping fingers on your devices, so you will keep focus on your TV/Display rather than going back and forward between your TV/Display and your devices to find the exact buttons to be pressed/touch.
